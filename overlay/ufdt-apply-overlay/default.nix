@@ -1,4 +1,4 @@
-{ stdenv, lib, fetchFromGitHub, dtc, python }:
+{ stdenv, lib, fetchFromGitHub, dtc, python3 }:
 
 stdenv.mkDerivation {
   pname = "ufdt-apply-overlay";
@@ -13,11 +13,17 @@ stdenv.mkDerivation {
 
   buildInputs = [
     dtc
-    python
+    python3
   ];
 
   postPatch = ''
     cp debian/ufdt_apply_overlay.mk Makefile
+
+    # `mkdtboimg.py` is Python 2 only in this one spot; everything else in it
+    # already parses under Python 3. Nixpkgs dropped Python 2 entirely, so
+    # rewrite the last incompatibility rather than pinning a dead interpreter.
+    substituteInPlace utils/src/mkdtboimg.py \
+      --replace-fail "for idx in xrange(total_images):" "for idx in range(total_images):"
   '';
 
   makeFlags = [

@@ -81,6 +81,28 @@ in
         stdenv = with final; overrideCC stdenv buildPackages.clang;
       };
 
+      # Compatibility aliases for the versioned kernel builders dropped by
+      # eb31ee50 ("kernel-builder: Drop versioned builders").
+      #
+      # The vendor-based Android devices under `devices/` still refer to these
+      # names. The pinned Nixpkgs no longer provides gcc49/gcc6/clang_8/clang_9,
+      # so these aliases intentionally fall back to the default compilers.
+      #
+      # This keeps those device configurations evaluable, which is what CI
+      # checks (.ci/parse-all.sh and .ci/quick-eval.sh). It does **not** make
+      # them buildable: these old out-of-tree kernels need their original
+      # compiler vintage and fail during compilation.
+      kernel-builder-gcc49 = callPackage ./mobile-nixos/kernel/builder.nix {};
+      kernel-builder-gcc6 = callPackage ./mobile-nixos/kernel/builder.nix {
+        stdenv = with final; overrideCC stdenv buildPackages.gcc;
+      };
+      kernel-builder-clang_8 = callPackage ./mobile-nixos/kernel/builder.nix {
+        stdenv = with final; overrideCC stdenv buildPackages.clang;
+      };
+      kernel-builder-clang_9 = callPackage ./mobile-nixos/kernel/builder.nix {
+        stdenv = with final; overrideCC stdenv buildPackages.clang;
+      };
+
       # We need to "globally" locally override some packages for stage-1.
       stage-1 = (final.appendOverlays [(import ../boot/overlay)]).mobile-nixos.stage-1;
 

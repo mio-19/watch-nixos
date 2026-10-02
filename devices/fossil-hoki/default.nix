@@ -7,8 +7,8 @@
     manufacturer = "Fossil";
   };
 
-  # Not buildable yet: the kernel needs GCC 8 (dropped from Nixpkgs), and the
-  # hoki device trees are still only carried downstream by AsteroidOS.
+  # Not buildable yet: the kernel needs GCC 8, which Nixpkgs no longer ships.
+  # Everything else (device trees, bootimg layout, DTB install) is in place.
   mobile.device.supportLevel = "broken";
 
   mobile.hardware = {
@@ -40,8 +40,7 @@
   };
 
   # The DTB is appended to the kernel image (CONFIG_BUILD_ARM_APPENDED_DTB_IMAGE).
-  # The meta-hoki patch sets DTSSUBDIR := sda429-hoki, so dtbs_install drops the
-  # blob flat under $out/dtbs/. Confirm the exact path once the kernel builds.
+  # 90_dtbs-install.patch copies it flat into $out/dtbs/.
   mobile.system.android.appendDTB = [
     "dtbs/sda429-hoki.dtb"
   ];

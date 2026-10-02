@@ -1,0 +1,29 @@
+Add a dtbs_install target for the hoki DTB
+
+This downstream 4.14 tree defines dtbs_install only under arch/arm64; ARM has
+no such target, so `make dtbs dtbs_install` installs nothing.
+
+The sda429-hoki sub-make writes its blob to $(obj)/../%.dtb, i.e. into
+arch/arm/boot/dts/, and the parent dts/Makefile never lists it in dtb-y. That
+puts the DTB out of reach of scripts/Makefile.dtbinst, so copy it directly.
+
+diff --git a/arch/arm/Makefile b/arch/arm/Makefile
+--- a/arch/arm/Makefile
++++ b/arch/arm/Makefile
+@@ -361,6 +361,16 @@ $(INSTALL_TARGETS):
+ %.dtb: | scripts
+ 	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) $(boot)/dts/$@
+ 
++# This downstream tree has no dtbs_install for ARM (only arm64 defines one).
++# The hoki DTB is built into $(boot)/dts/ by the sda429-hoki sub-make, which
++# writes to $(obj)/../%.dtb, so it is not reachable via
++# scripts/Makefile.dtbinst (the parent dts/Makefile does not list it in
++# dtb-y). Install it directly.
++PHONY += dtbs_install
++dtbs_install:
++	$(Q)mkdir -p $(INSTALL_DTBS_PATH)
++	$(Q)cp -v $(boot)/dts/*.dtb $(INSTALL_DTBS_PATH)/
++
+ dtbs: scripts
+ 	$(Q)$(MAKE) $(build)=$(boot)/dts MACHINE=$(MACHINE) dtbs
+ 	$(foreach DIR, $(DTSSUBDIR), $(Q)$(MAKE) $(build)=$(boot)/dts/$(DIR) MACHINE=$(MACHINE) dtbs)
